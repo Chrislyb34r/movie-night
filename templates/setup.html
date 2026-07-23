@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movie Match</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <div class="ticket" style="width: 100%; max-width: 380px; padding: 36px 28px;">
+    <div style="text-align: center; margin-bottom: 28px;">
+      <div style="font-family: var(--font-display); font-size: 14px; letter-spacing: 0.2em; color: var(--color-accent-red);">ADMIT TWO</div>
+      <h1 style="font-size: 42px;">Movie Match</h1>
+      <div style="font-size: 13px; color: var(--color-muted);">swipe together, watch together</div>
+    </div>
+
+    <div class="tab-toggle">
+      <button id="tab-create-btn" class="active" onclick="showTab('create')">Start Session</button>
+      <button id="tab-join-btn" onclick="showTab('join')">Join Session</button>
+    </div>
+
+    <!-- CREATE A NEW SESSION -->
+    <div id="tab-create" class="tab-panel active">
+      <label for="create-name">Your name</label>
+      <input type="text" id="create-name" placeholder="e.g. Alice" />
+
+      <div style="height: 16px;"></div>
+
+      <label>Streaming services (tap to select)</label>
+      <div class="service-options" id="service-options">
+        <div class="service-chip selected" data-service="netflix">Netflix</div>
+        <div class="service-chip selected" data-service="prime">Prime Video</div>
+        <div class="service-chip" data-service="disney">Disney+</div>
+        <div class="service-chip" data-service="hbo">Max</div>
+      </div>
+
+      <div style="height: 24px;"></div>
+
+      <button class="btn-primary" style="width: 100%;" onclick="createSession()">
+        Create Session
+      </button>
+
+      <p class="hint" id="create-error"></p>
+    </div>
+
+    <!-- SHARE SCREEN — shown right after a session is created -->
+    <div id="tab-share" class="tab-panel">
+      <div style="text-align: center;">
+        <h2 style="font-size: 22px; margin-bottom: 4px;">Session created!</h2>
+        <p class="hint">Send this code to your partner</p>
+      </div>
+
+      <div class="session-code" id="share-code">--------</div>
+
+      <button class="btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="copyCode()">
+        Copy Code
+      </button>
+      <button class="btn-primary" style="width: 100%; background: var(--color-accent-teal);" onclick="copyLink()">
+        Copy Invite Link
+      </button>
+
+      <p class="hint" id="copy-feedback">&nbsp;</p>
+
+      <div style="height: 12px;"></div>
+
+      <button class="btn-primary" style="width: 100%; background: var(--color-card-text);" onclick="continueToSwipe()">
+        Continue to Swiping →
+      </button>
+    </div>
+
+
+    <!-- JOIN AN EXISTING SESSION -->
+    <div id="tab-join" class="tab-panel">
+      <label for="join-name">Your name</label>
+      <input type="text" id="join-name" placeholder="e.g. Bob" />
+
+      <div style="height: 16px;"></div>
+
+      <label for="join-code">Session code</label>
+      <input type="text" id="join-code" placeholder="e.g. a1b2c3d4" />
+
+      <div style="height: 24px;"></div>
+
+      <button class="btn-primary" style="width: 100%;" onclick="joinSession()">
+        Join Session
+      </button>
+
+      <p class="hint" id="join-error"></p>
+    </div>
+  </div>
+
+  <script>
+    let createdSessionId = null;
+
+    function showTab(name) {
+      document.getElementById('tab-create').classList.toggle('active', name === 'create');
+      document.getElementById('tab-join').classList.toggle('active', name === 'join');
+      document.getElementById('tab-share').classList.toggle('active', name === 'share');
+
+      // The create/join toggle only makes sense for those two tabs —
+      // hide it entirely while on the share screen.
+      document.querySelector('.tab-toggle').style.display = name === 'share' ? 'none' : 'flex';
+
+      document.getElementById('tab-create-btn').classList.toggle('active', name === 'create');
+      document.getElementById('tab-join-btn').classList.toggle('active', name === 'join');
+    }
+
+    // If someone opened an invite link (e.g. ?join=a1b2c3d4), jump straight
+    // to the Join tab with the code already filled in.
+    const inviteCode = new URLSearchParams(window.location.search).get('join');
+    if (inviteCode) {
+      showTab('join');
+      document.getElementById('join-code').value = inviteCode;
+    }
+
+    // Toggle streaming service chips on/off when clicked
+    document.querySelectorAll('.service-chip').forEach(chip => {
+      chip.addEventListener('click', () => chip.classList.toggle('selected'));
+    });
+
+    async function createSession() {
+      const name = document.getElementById('create-name').value.trim();
+      const errorEl = document.getElementById('create-error');
+      errorEl.textContent = '';
+
+      if (!name) {
+        errorEl.textContent = 'Please enter your name.';
+        return;
+      }
+
+      const selectedServices = Array.from(document.querySelectorAll('.service-chip.selected'))
+        .map(chip => chip.dataset.service);
+
+      if (selectedServices.length === 0) {
+        errorEl.textContent = 'Select at least one streaming service.';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/session/create?services=${selectedServices.join(',')}`, {
+          method: 'POST',
+        });
+
+        if (!response.ok) throw new Error('Server error');
+
+        const data = await response.json();
+        createdSessionId = data.session_id;
+        window.creatorName = name; // remember for the "Continue" button below
+
+        document.getElementById('share-code').textContent = data.session_id;
+        showTab('share');
+      } catch (err) {
+        errorEl.textContent = 'Something went wrong creating the session. Is the server running?';
+      }
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(createdSessionId);
+      flashCopyFeedback('Code copied!');
+    }
+
+    function copyLink() {
+      const link = `${window.location.origin}/?join=${createdSessionId}`;
+      navigator.clipboard.writeText(link);
+      flashCopyFeedback('Link copied — send it to your partner!');
+    }
+
+    function flashCopyFeedback(message) {
+      const el = document.getElementById('copy-feedback');
+      el.textContent = message;
+      setTimeout(() => { el.textContent = '\u00A0'; }, 2500);
+    }
+
+    function continueToSwipe() {
+      window.location.href = `/swipe/${createdSessionId}?user=${encodeURIComponent(window.creatorName)}`;
+    }
+
+    function joinSession() {
+      const name = document.getElementById('join-name').value.trim();
+      const code = document.getElementById('join-code').value.trim();
+      const errorEl = document.getElementById('join-error');
+      errorEl.textContent = '';
+
+      if (!name || !code) {
+        errorEl.textContent = 'Please enter your name and the session code.';
+        return;
+      }
+
+      // We don't need to call the server here — the swipe page itself
+      // will check whether this session_id actually exists.
+      window.location.href = `/swipe/${code}?user=${encodeURIComponent(name)}`;
+    }
+  </script>
+
+</body>
+</html>

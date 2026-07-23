@@ -1,0 +1,15 @@
+# Virtual environment
+venv/
+
+# The actual database file — this is your local data, not code
+movies.db
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# PyCharm project settings (optional to ignore — some people like to keep these)
+.idea/
+
+# OS junk files
+.DS_Store

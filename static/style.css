@@ -1,0 +1,360 @@
+/* ============================================
+   Movie Match — shared styles
+   Theme: old-fashioned movie ticket stub
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-bg: #14121a;
+  --color-bg-glow: #201c2b;
+  --color-card: #f4ecd8;
+  --color-card-text: #2a2118;
+  --color-accent-red: #b8402f;
+  --color-accent-gold: #d9a441;
+  --color-accent-teal: #3f7a72;
+  --color-muted: #8b8496;
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 10%, var(--color-bg-glow), transparent 55%),
+    radial-gradient(circle at 85% 80%, var(--color-bg-glow), transparent 50%),
+    var(--color-bg);
+  font-family: var(--font-body);
+  color: var(--color-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
+/* ---------- Ticket stub shared shape ---------- */
+
+.ticket {
+  background: var(--color-card);
+  color: var(--color-card-text);
+  border-radius: 18px;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* the perforated notches on the sides of a ticket */
+.ticket::before,
+.ticket::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  background: var(--color-bg);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+.ticket::before { left: -14px; }
+.ticket::after { right: -14px; }
+
+.ticket-perforation {
+  border-left: 2px dashed rgba(42, 33, 24, 0.25);
+}
+
+/* ---------- Buttons ---------- */
+
+button {
+  font-family: var(--font-body);
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+.btn-primary {
+  background: var(--color-accent-red);
+  color: #fff;
+  padding: 14px 28px;
+  font-size: 16px;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 18px rgba(184, 64, 47, 0.4);
+}
+
+.btn-primary:disabled {
+  background: var(--color-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ---------- Form elements ---------- */
+
+label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted);
+  display: block;
+  margin-bottom: 6px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid rgba(42, 33, 24, 0.15);
+  font-family: var(--font-body);
+  font-size: 15px;
+  background: #fff;
+  color: var(--color-card-text);
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--color-accent-red);
+}
+
+.service-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.service-chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(42, 33, 24, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.service-chip.selected {
+  background: var(--color-accent-teal);
+  border-color: var(--color-accent-teal);
+  color: #fff;
+}
+
+/* ---------- Swipe stage ---------- */
+
+.stage {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.card-stack {
+  position: relative;
+  width: 100%;
+  height: 520px;
+}
+
+.movie-card {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: none;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  user-select: none;
+}
+
+.movie-card:active {
+  cursor: grabbing;
+}
+
+.movie-card .service-badge {
+  align-self: flex-start;
+  background: var(--color-accent-gold);
+  color: var(--color-card-text);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.movie-card h2 {
+  font-size: 34px;
+  line-height: 1.05;
+  margin-bottom: 12px;
+}
+
+.movie-card p {
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(42, 33, 24, 0.75);
+  overflow-y: auto;
+}
+
+.movie-card .stamp {
+  position: absolute;
+  top: 30px;
+  font-family: var(--font-display);
+  font-size: 40px;
+  border: 4px solid;
+  border-radius: 10px;
+  padding: 2px 14px;
+  opacity: 0;
+  transform: rotate(-18deg);
+  pointer-events: none;
+}
+
+.stamp-like {
+  right: 20px;
+  color: var(--color-accent-teal);
+  border-color: var(--color-accent-teal);
+}
+
+.stamp-nope {
+  left: 20px;
+  color: var(--color-accent-red);
+  border-color: var(--color-accent-red);
+  transform: rotate(18deg);
+}
+
+.swipe-buttons {
+  display: flex;
+  gap: 24px;
+}
+
+.swipe-buttons button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-card);
+  color: var(--color-card-text);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-nope { color: var(--color-accent-red) !important; }
+.btn-like { color: var(--color-accent-teal) !important; }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.empty-state h2 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--color-muted);
+}
+
+/* ---------- Match modal ---------- */
+
+.match-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 26, 0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+
+.match-overlay.visible {
+  display: flex;
+}
+
+.match-modal {
+  text-align: center;
+  padding: 40px 32px;
+  max-width: 340px;
+}
+
+.match-modal .headline {
+  font-size: 44px;
+  color: var(--color-accent-red);
+  margin-bottom: 4px;
+}
+
+.match-modal h3 {
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+
+/* ---------- Session code display ---------- */
+
+.session-code {
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 0.1em;
+  text-align: center;
+  padding: 14px;
+  background: rgba(42, 33, 24, 0.06);
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--color-muted);
+  text-align: center;
+  margin-top: 8px;
+}
+
+.tab-toggle {
+  display: flex;
+  background: rgba(42, 33, 24, 0.08);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.tab-toggle button {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  color: var(--color-card-text);
+  font-size: 14px;
+  border-radius: 999px;
+}
+
+.tab-toggle button.active {
+  background: var(--color-card-text);
+  color: var(--color-card);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movie Match — Swiping</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <div class="stage">
+    <div style="text-align: center;">
+      <h1 style="font-size: 28px;">Movie Match</h1>
+      <div class="hint" id="session-label"></div>
+      <a href="#" id="matches-link" style="color: var(--color-accent-gold); font-size: 13px; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 6px;">
+        ★ View Matches (<span id="matches-count">0</span>)
+      </a>
+    </div>
+
+    <div class="card-stack" id="card-stack">
+      <!-- Movie cards get inserted here by swipe.js -->
+    </div>
+
+    <div class="swipe-buttons">
+      <button class="btn-nope" onclick="swipeCurrentCard('left')">✕</button>
+      <button class="btn-like" onclick="swipeCurrentCard('right')">♥</button>
+    </div>
+  </div>
+
+  <!-- The "It's a match!" popup -->
+  <div class="match-overlay" id="match-overlay">
+    <div class="ticket match-modal">
+      <div class="headline">★</div>
+      <h3 id="match-movie-title">It's a Match!</h3>
+      <p class="hint" style="margin-bottom: 20px;">You both want to watch this. Go make popcorn.</p>
+      <button class="btn-primary" onclick="dismissMatch()">Keep Swiping</button>
+    </div>
+  </div>
+
+  <script src="/static/swipe.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movie Match — Your Matches</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    /* A few page-specific tweaks that don't belong in the shared stylesheet */
+    body { align-items: flex-start; }
+    .matches-page { width: 100%; max-width: 480px; margin: 0 auto; }
+    .matches-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .back-link {
+      color: var(--color-card);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .match-item {
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    .match-item h3 { font-size: 22px; margin-bottom: 6px; }
+    .match-item p { font-size: 14px; color: rgba(42, 33, 24, 0.75); margin: 0; }
+    .match-item .service-badge {
+      display: inline-block;
+      background: var(--color-accent-gold);
+      color: var(--color-card-text);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 9px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="matches-page">
+    <div class="matches-header">
+      <h1 style="font-size: 26px;">Your Matches</h1>
+      <a class="back-link" id="back-link" href="#">← Back to swiping</a>
+    </div>
+
+    <div id="matches-list">
+      <p class="hint">Loading...</p>
+    </div>
+  </div>
+
+  <script>
+    const sessionId = window.location.pathname.split('/').pop();
+    const userName = new URLSearchParams(window.location.search).get('user') || 'Anonymous';
+
+    document.getElementById('back-link').href =
+      `/swipe/${sessionId}?user=${encodeURIComponent(userName)}`;
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function loadMatches() {
+      const listEl = document.getElementById('matches-list');
+
+      try {
+        const response = await fetch(`/session/${sessionId}/matches`);
+        if (!response.ok) throw new Error('Session not found');
+
+        const data = await response.json();
+
+        if (data.matches.length === 0) {
+          listEl.innerHTML = `
+            <div class="ticket" style="padding: 30px; text-align: center;">
+              <p class="hint">No matches yet — keep swiping!</p>
+            </div>`;
+          return;
+        }
+
+        listEl.innerHTML = data.matches.map(movie => `
+          <div class="ticket ticket-perforation match-item">
+            <div class="service-badge">${escapeHtml(movie.streaming_service)}</div>
+            <h3>${escapeHtml(movie.title)}</h3>
+            <p>${escapeHtml(movie.overview || 'No description available.')}</p>
+          </div>
+        `).join('');
+      } catch (err) {
+        listEl.innerHTML = `<p class="hint">Couldn't load matches. Is the session code correct?</p>`;
+      }
+    }
+
+    loadMatches();
+    // Keep the list fresh in case your partner matches with something while you're on this page.
+    setInterval(loadMatches, 5000);
+  </script>
+
+</body>
+</html>
