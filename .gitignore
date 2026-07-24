@@ -1,15 +1,17 @@
 # Virtual environment
 venv/
 
-# The actual database file — this is your local data, not code
+# The actual database file — this is local data, not code
 movies.db
 
 # Python cache files
 __pycache__/
 *.pyc
 
-# PyCharm project settings (optional to ignore — some people like to keep these)
-.idea/
+# PyCharm project settings — ignore most of it, but keep run configurations
+.idea/*
+!.idea/runConfigurations
+!.idea/runConfigurations/*.xml
 
 # OS junk files
 .DS_Store
