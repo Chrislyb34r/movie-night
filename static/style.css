@@ -133,6 +133,22 @@ input[type="text"]:focus {
   border-color: var(--color-accent-red);
 }
 
+.select-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid rgba(42, 33, 24, 0.15);
+  font-family: var(--font-body);
+  font-size: 15px;
+  background: #fff;
+  color: var(--color-card-text);
+}
+
+.select-input:focus {
+  outline: none;
+  border-color: var(--color-accent-red);
+}
+
 .service-options {
   display: flex;
   flex-wrap: wrap;
@@ -205,6 +221,13 @@ input[type="text"]:focus {
   font-size: 34px;
   line-height: 1.05;
   margin-bottom: 12px;
+}
+
+.movie-card .card-meta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent-teal);
+  margin-bottom: 10px;
 }
 
 .movie-card p {
@@ -281,15 +304,19 @@ input[type="text"]:focus {
   position: fixed;
   inset: 0;
   background: rgba(20, 18, 26, 0.85);
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
   padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
 .match-overlay.visible {
-  display: flex;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .match-modal {
@@ -312,8 +339,9 @@ input[type="text"]:focus {
 /* ---------- Session code display ---------- */
 
 .session-code {
-  font-family: var(--font-display);
-  font-size: 32px;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 28px;
   letter-spacing: 0.1em;
   text-align: center;
   padding: 14px;

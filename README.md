@@ -1,68 +1,122 @@
-# Movie Match
+# 🎬 Movie Match
 
-A tiny app where you and your partner swipe on movies, and get notified when you both swipe right on the same one.
+A Tinder-style app for couples (or roommates, or friend groups) to swipe through movies together and instantly find out what you both want to watch — no more 45-minute "what should we watch" scrolling sessions.
 
-## Setup
+Built as a hands-on project to learn backend development with **FastAPI** and **SQLite**, with real-time streaming availability data pulled from a live API.
 
-1. Open this folder in PyCharm.
-2. Create a virtual environment (PyCharm will usually prompt you to do this automatically when it detects `requirements.txt`). Or manually:
-   ```
-   python -m venv venv
-   source venv/bin/activate      # on Mac/Linux
-   venv\Scripts\activate         # on Windows
-   ```
-3. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+---
 
-## Running it
+## How it works
+
+1. One person creates a session, picks their streaming services and country, and gets a shareable session code (or invite link)
+2. Their partner joins using that code
+3. Both people swipe right (👍) or left (👎) on movies pulled from their selected streaming services
+4. The moment **both** people swipe right on the same title, it's a match — shown instantly to both, and saved permanently in a **Matches** list you can revisit any time
+
+---
+
+## Features
+
+- 🔗 **Real-time streaming availability** — movie data pulled live via the [Streaming Availability API](https://www.movieofthenight.com/about/api), reflecting what's actually on Netflix, Prime Video, Disney+, Max, and Crave right now
+- 🌍 **Multi-country support** — availability differs by country (Canada, US, UK, Australia), and results are filtered accordingly
+- 📊 **Flexible sorting** — sort by popularity over the last week, month, year, or all-time
+- 👆 **Swipe gestures** — drag-to-swipe on touch and mouse, with animated LIKE/NOPE feedback
+- 🎟️ **Shareable sessions** — one-tap code/link copying to invite a partner, no accounts or sign-up required
+- ❤️ **Persistent match history** — every match is saved and viewable at any time, not just in the moment
+- 🎨 **Custom themed UI** — a movie-ticket-inspired design (perforated card edges, ticket-stub styling) built from scratch, no UI framework
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Backend | [FastAPI](https://fastapi.tiangolo.com/) (Python) |
+| Database | SQLite (via Python's built-in `sqlite3`) |
+| Frontend | Vanilla HTML/CSS/JavaScript (no framework) |
+| External API | [Streaming Availability API](https://www.movieofthenight.com/about/api) (RapidAPI) |
+| Server | [Uvicorn](https://www.uvicorn.org/) (ASGI) |
+
+No frontend framework, no ORM, no build step — deliberately kept lightweight and dependency-light, both as a learning exercise and to keep the whole stack easy to reason about end to end.
+
+---
+
+## Project structure
 
 ```
+movie-match/
+├── app.py              # FastAPI routes — sessions, swipes, matches
+├── database.py          # SQLite schema + queries
+├── movie_api.py          # Streaming Availability API integration (with demo-data fallback)
+├── models.py               # Pydantic request/response models
+├── requirements.txt
+├── static/
+│   ├── style.css            # Movie-ticket themed styling
+│   └── swipe.js               # Swipe gestures, API calls, match polling
+└── templates/
+    ├── setup.html              # Create/join a session
+    ├── swipe.html                # The swipe screen
+    └── matches.html                # Persistent match history
+```
+
+---
+
+## Getting started
+
+### Prerequisites
+- Python 3.10+
+- A free [RapidAPI](https://rapidapi.com/) account + subscription to the [Streaming Availability API](https://rapidapi.com/movie-of-the-night-movie-of-the-night-default/api/streaming-availability) (free tier: 500 requests/month) — optional, the app runs on demo data without it
+
+### Setup
+
+```bash
+git clone https://github.com/Chrislyb34r/movie-match.git
+cd movie-match
+
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+
+pip install -r requirements.txt
+```
+
+### Running it
+
+```bash
 uvicorn app:app --reload
 ```
 
-Then open **http://127.0.0.1:8000/docs** in your browser.
+Open **http://127.0.0.1:8000** in your browser.
 
-This is FastAPI's auto-generated interactive docs page — you can test every
-endpoint here without writing any frontend code. This is the recommended way
-to build and test step 5 from our plan (backend logic) before touching HTML/JS.
+To use real streaming data instead of the built-in demo movies, set your RapidAPI key before starting the server:
 
-### Try it out in /docs
+```bash
+export RAPIDAPI_KEY=your_key_here      # Windows: set RAPIDAPI_KEY=your_key_here
+```
 
-1. **POST /session/create** → click "Try it out" → Execute. This creates a
-   session pre-loaded with 5 demo movies (no API key needed yet) and returns
-   a `session_id`. Copy it.
-2. **GET /session/{session_id}/next-movie** → paste your session_id, and use
-   `user_name = "alice"`. This returns the next unswiped movie.
-3. **POST /session/{session_id}/swipe** → swipe right on that movie as
-   `"alice"`.
-4. Repeat step 2 but with `user_name = "bob"` — get the same movie, then
-   swipe right as `"bob"` too.
-5. **GET /session/{session_id}/matches** → you should now see that movie
-   show up as a match!
+### Testing the API directly
 
-Once this flow makes sense to you in `/docs`, the web page (swipe.html) is
-just a UI wrapper that calls these same endpoints with JavaScript's `fetch()`.
+FastAPI auto-generates an interactive API explorer at **http://127.0.0.1:8000/docs** — useful for testing endpoints directly without the UI.
 
-## Using the real streaming API (later)
+---
 
-Right now `movie_api.py` returns demo data. When you're ready for real
-streaming availability:
+## Architecture notes
 
-1. Sign up for a free RapidAPI account and subscribe to the free tier of the
-   [Streaming Availability API](https://rapidapi.com/movie-of-the-night-movie-of-the-night-default/api/streaming-availability)
-2. Set an environment variable with your key:
-   ```
-   export RAPIDAPI_KEY=your_key_here      # Mac/Linux
-   set RAPIDAPI_KEY=your_key_here         # Windows (cmd)
-   ```
-   Or in PyCharm: Run > Edit Configurations > Environment Variables.
-3. Restart the app — it'll automatically use the real API instead of demo data.
+- **Sessions** are the shared "room" two people swipe within, identified by a short random code — no user accounts, no login
+- **Matching logic** is a simple SQL query: a movie counts as matched once 2 *distinct* people have swiped right on it within the same session
+- **Streaming data is cached per-session** at creation time rather than fetched live per-swipe, keeping the app within the API's free-tier rate limits
+- The frontend **polls** for new matches every few seconds, so a match still surfaces even if it happens while you're mid-swipe on something else
 
-## What's next
+---
 
-- [ ] Build `templates/setup.html` — a page to create/join a session
-- [ ] Build `templates/swipe.html` + `static/swipe.js` — the actual swipe UI
-- [ ] Style it with `static/style.css`
-- [ ] (Later) Push notifications instead of polling for matches
+## Roadmap
+
+- [ ] Real deployment (currently runs locally / over local network)
+- [ ] Genre and rating filters
+- [ ] TV show support (currently movies only)
+- [ ] Push notifications instead of polling
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.

@@ -27,12 +27,72 @@
 
       <div style="height: 16px;"></div>
 
+      <label for="create-country">Country</label>
+      <select id="create-country" class="select-input">
+        <option value="ca" selected>Canada</option>
+        <option value="us">United States</option>
+        <option value="gb">United Kingdom</option>
+        <option value="au">Australia</option>
+      </select>
+      <p class="hint" style="text-align: left; margin-top: 6px;">Which movies show up depends on this — pick where you're actually streaming from.</p>
+
+      <div style="height: 16px;"></div>
+
+      <label>Movies or TV shows?</label>
+      <div class="tab-toggle" style="margin-bottom: 0;">
+        <button type="button" id="show-type-movie-btn" class="active" onclick="setShowType('movie')">Movies</button>
+        <button type="button" id="show-type-series-btn" onclick="setShowType('series')">TV Shows</button>
+      </div>
+
+      <div style="height: 16px;"></div>
+
+      <label for="create-order-by">Sort by</label>
+      <select id="create-order-by" class="select-input">
+        <option value="popularity_1year" selected>Popular this year</option>
+        <option value="popularity_1month">Popular this month</option>
+        <option value="popularity_1week">Popular this week</option>
+        <option value="popularity_alltime">Popular all-time</option>
+      </select>
+
+      <div style="height: 16px;"></div>
+
+      <label for="create-rating">Minimum rating</label>
+      <select id="create-rating" class="select-input">
+        <option value="" selected>Any rating</option>
+        <option value="5">5+</option>
+        <option value="6">6+</option>
+        <option value="7">7+</option>
+        <option value="8">8+</option>
+      </select>
+
+      <div style="height: 16px;"></div>
+
+      <label>Genres (tap to select, optional)</label>
+      <div class="service-options" id="genre-options">
+        <div class="service-chip" data-genre="action">Action</div>
+        <div class="service-chip" data-genre="comedy">Comedy</div>
+        <div class="service-chip" data-genre="drama">Drama</div>
+        <div class="service-chip" data-genre="horror">Horror</div>
+        <div class="service-chip" data-genre="thriller">Thriller</div>
+        <div class="service-chip" data-genre="romance">Romance</div>
+        <div class="service-chip" data-genre="scifi">Sci-Fi</div>
+        <div class="service-chip" data-genre="fantasy">Fantasy</div>
+        <div class="service-chip" data-genre="animation">Animation</div>
+        <div class="service-chip" data-genre="documentary">Documentary</div>
+        <div class="service-chip" data-genre="family">Family</div>
+        <div class="service-chip" data-genre="crime">Crime</div>
+      </div>
+
+      <div style="height: 16px;"></div>
+
       <label>Streaming services (tap to select)</label>
       <div class="service-options" id="service-options">
-        <div class="service-chip selected" data-service="netflix">Netflix</div>
-        <div class="service-chip selected" data-service="prime">Prime Video</div>
+        <div class="service-chip" data-service="netflix">Netflix</div>
+        <div class="service-chip" data-service="prime">Prime Video</div>
         <div class="service-chip" data-service="disney">Disney+</div>
-        <div class="service-chip" data-service="hbo">Max</div>
+        <div class="service-chip" data-service="mubi">Mubi</div>
+        <div class="service-chip" data-service="paramount">Paramount+</div>
+        <div class="service-chip selected" data-service="crave">Crave</div>
       </div>
 
       <div style="height: 24px;"></div>
@@ -92,6 +152,7 @@
 
   <script>
     let createdSessionId = null;
+    let selectedShowType = 'movie';
 
     function showTab(name) {
       document.getElementById('tab-create').classList.toggle('active', name === 'create');
@@ -106,16 +167,25 @@
       document.getElementById('tab-join-btn').classList.toggle('active', name === 'join');
     }
 
+    function setShowType(type) {
+      selectedShowType = type;
+      document.getElementById('show-type-movie-btn').classList.toggle('active', type === 'movie');
+      document.getElementById('show-type-series-btn').classList.toggle('active', type === 'series');
+    }
+
     // If someone opened an invite link (e.g. ?join=a1b2c3d4), jump straight
     // to the Join tab with the code already filled in.
     const inviteCode = new URLSearchParams(window.location.search).get('join');
     if (inviteCode) {
       showTab('join');
-      document.getElementById('join-code').value = inviteCode;
+      document.getElementById('join-code').value = inviteCode.toLowerCase();
     }
 
-    // Toggle streaming service chips on/off when clicked
-    document.querySelectorAll('.service-chip').forEach(chip => {
+    // Toggle streaming service chips and genre chips on/off when clicked
+    document.querySelectorAll('#service-options .service-chip').forEach(chip => {
+      chip.addEventListener('click', () => chip.classList.toggle('selected'));
+    });
+    document.querySelectorAll('#genre-options .service-chip').forEach(chip => {
       chip.addEventListener('click', () => chip.classList.toggle('selected'));
     });
 
@@ -129,18 +199,31 @@
         return;
       }
 
-      const selectedServices = Array.from(document.querySelectorAll('.service-chip.selected'))
+      const selectedServices = Array.from(document.querySelectorAll('#service-options .service-chip.selected'))
         .map(chip => chip.dataset.service);
+
+      const selectedGenres = Array.from(document.querySelectorAll('#genre-options .service-chip.selected'))
+        .map(chip => chip.dataset.genre);
+
+      const country = document.getElementById('create-country').value;
+      const orderBy = document.getElementById('create-order-by').value;
+      const minRating = document.getElementById('create-rating').value;
 
       if (selectedServices.length === 0) {
         errorEl.textContent = 'Select at least one streaming service.';
         return;
       }
 
+      let url = `/session/create?services=${selectedServices.join(',')}&country=${country}&order_by=${orderBy}&show_type=${selectedShowType}`;
+      if (selectedGenres.length > 0) {
+        url += `&genres=${selectedGenres.join(',')}`;
+      }
+      if (minRating) {
+        url += `&min_rating=${minRating}`;
+      }
+
       try {
-        const response = await fetch(`/session/create?services=${selectedServices.join(',')}`, {
-          method: 'POST',
-        });
+        const response = await fetch(url, { method: 'POST' });
 
         if (!response.ok) throw new Error('Server error');
 
@@ -178,7 +261,9 @@
 
     function joinSession() {
       const name = document.getElementById('join-name').value.trim();
-      const code = document.getElementById('join-code').value.trim();
+      // Session codes are always lowercase — normalize here so it doesn't
+      // matter how the person typed or read the code.
+      const code = document.getElementById('join-code').value.trim().toLowerCase();
       const errorEl = document.getElementById('join-error');
       errorEl.textContent = '';
 

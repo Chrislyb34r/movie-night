@@ -43,16 +43,40 @@ def serve_matches_page(session_id: str):
 
 
 @app.post("/session/create", response_model=SessionCreateResponse)
-def create_session(services: str = "netflix,prime"):
+def create_session(
+    services: str = "crave",
+    country: str = "us",
+    order_by: str = "popularity_1year",
+    show_type: str = "movie",
+    genres: str = "",
+    min_rating: float | None = None,
+):
     """
     Creates a new shared session and pre-loads it with movies from
-    the given streaming services (comma-separated, e.g. "netflix,prime").
+    the given streaming services (comma-separated, e.g. "netflix,prime")
+    available in the given country (ISO 3166-1 alpha-2 code, e.g. "ca"),
+    ranked by the given order_by value (see movie_api.fetch_movies).
+
+    show_type: "movie" or "series"
+    genres: comma-separated genre ids (e.g. "action,comedy"), or "" for any
+    min_rating: minimum rating out of 10 (e.g. 7 for "7+"), or None for any
     """
-    session_id = str(uuid.uuid4())[:8]  # short, shareable code
+    # Session codes are lowercase hex — normalizing here means it doesn't
+    # matter if a code somehow gets typed/pasted in a different case later.
+    session_id = str(uuid.uuid4())[:8].lower()
     database.create_session(session_id)
 
-    service_list = [s.strip() for s in services.split(",")]
-    movies = movie_api.fetch_movies(service_list)
+    service_list = [s.strip() for s in services.split(",") if s.strip()]
+    genre_list = [g.strip() for g in genres.split(",") if g.strip()]
+
+    movies = movie_api.fetch_movies(
+        service_list,
+        country=country,
+        order_by=order_by,
+        show_type=show_type,
+        genres=genre_list,
+        min_rating=min_rating,
+    )
 
     for movie in movies:
         database.add_movie(
@@ -62,6 +86,8 @@ def create_session(services: str = "netflix,prime"):
             overview=movie["overview"],
             poster_url=movie["poster_url"],
             streaming_service=movie["streaming_service"],
+            rating=movie.get("rating"),
+            genres=movie.get("genres", ""),
         )
 
     return SessionCreateResponse(session_id=session_id)
@@ -72,6 +98,8 @@ def get_next_movie(session_id: str, user_name: str):
     """
     Returns the next movie this user hasn't swiped on yet.
     """
+    session_id = session_id.lower()
+
     if not database.session_exists(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 
@@ -88,6 +116,8 @@ def swipe(session_id: str, swipe_request: SwipeRequest):
     Records a swipe. If this makes 2 different people swipe right
     on the same movie, it's a match.
     """
+    session_id = session_id.lower()
+
     if not database.session_exists(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 
@@ -114,6 +144,8 @@ def get_matches(session_id: str):
     Returns all movies matched so far in this session.
     The frontend polls this periodically to show match popups.
     """
+    session_id = session_id.lower()
+
     if not database.session_exists(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 

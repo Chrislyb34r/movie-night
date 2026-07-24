@@ -6,7 +6,9 @@
 
 // --- Read session_id and user name out of the URL ---
 // e.g. /swipe/a1b2c3d4?user=Alice
-const sessionId = window.location.pathname.split('/').pop();
+// Session codes are always lowercase — normalizing here means it doesn't
+// matter how the code was typed, pasted, or displayed.
+const sessionId = window.location.pathname.split('/').pop().toLowerCase();
 const urlParams = new URLSearchParams(window.location.search);
 const userName = urlParams.get('user') || 'Anonymous';
 
@@ -53,12 +55,20 @@ async function loadNextMovie() {
 }
 
 function renderCard(movie) {
+  const metaBits = [];
+  if (movie.rating) metaBits.push(`★ ${movie.rating}/10`);
+  if (movie.genres) metaBits.push(escapeHtml(movie.genres));
+  const metaLine = metaBits.length
+    ? `<div class="card-meta">${metaBits.join(' · ')}</div>`
+    : '';
+
   cardStack.innerHTML = `
     <div class="ticket ticket-perforation movie-card" id="active-card">
       <div class="stamp stamp-like" id="stamp-like">LIKE</div>
       <div class="stamp stamp-nope" id="stamp-nope">NOPE</div>
       <div class="service-badge">${escapeHtml(movie.streaming_service)}</div>
       <h2>${escapeHtml(movie.title)}</h2>
+      ${metaLine}
       <p>${escapeHtml(movie.overview || 'No description available.')}</p>
     </div>`;
 
@@ -170,14 +180,22 @@ async function swipeCurrentCard(direction) {
 
 // ---------- Match popup ----------
 
+let matchDismissTimer = null;
+
 function showMatch(movie) {
   document.getElementById('match-movie-title').textContent = movie.title;
   document.getElementById('match-overlay').classList.add('visible');
   seenMatchIds.add(movie.id);
+
+  // Auto-dismiss after a few seconds — no click needed. If another match
+  // pops up while this one is showing, restart the timer for the new one.
+  clearTimeout(matchDismissTimer);
+  matchDismissTimer = setTimeout(dismissMatch, 4000);
 }
 
 function dismissMatch() {
   document.getElementById('match-overlay').classList.remove('visible');
+  clearTimeout(matchDismissTimer);
 }
 
 // ---------- Poll for matches your partner might have triggered ----------

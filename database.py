@@ -50,9 +50,20 @@ def init_db():
             overview TEXT,
             poster_url TEXT,
             streaming_service TEXT,
+            rating REAL,
+            genres TEXT,
             FOREIGN KEY (session_id) REFERENCES sessions (id)
         )
     """)
+
+    # --- Migration for existing databases created before rating/genres existed ---
+    # CREATE TABLE IF NOT EXISTS does nothing if the table already exists with
+    # an older schema, so we check for the columns and add them if missing.
+    existing_columns = {row["name"] for row in cursor.execute("PRAGMA table_info(movies)")}
+    if "rating" not in existing_columns:
+        cursor.execute("ALTER TABLE movies ADD COLUMN rating REAL")
+    if "genres" not in existing_columns:
+        cursor.execute("ALTER TABLE movies ADD COLUMN genres TEXT")
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS swipes (
@@ -93,12 +104,13 @@ def session_exists(session_id: str) -> bool:
 # ---------- Movie helpers ----------
 
 def add_movie(session_id: str, external_id: str, title: str,
-              overview: str, poster_url: str, streaming_service: str):
+              overview: str, poster_url: str, streaming_service: str,
+              rating: float = None, genres: str = ""):
     conn = get_connection()
     conn.execute("""
-        INSERT INTO movies (session_id, external_id, title, overview, poster_url, streaming_service)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (session_id, external_id, title, overview, poster_url, streaming_service))
+        INSERT INTO movies (session_id, external_id, title, overview, poster_url, streaming_service, rating, genres)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (session_id, external_id, title, overview, poster_url, streaming_service, rating, genres))
     conn.commit()
     conn.close()
 
