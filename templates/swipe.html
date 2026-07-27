@@ -4,7 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Movie Match — Swiping</title>
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="manifest" href="/static/manifest.json" />
+  <meta name="theme-color" content="#14121a" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <!-- ?v=4 busts the browser cache — bump this number whenever style.css/swipe.js change,
+       otherwise phones/browsers may keep showing the OLD cached version after an update. -->
+  <link rel="stylesheet" href="/static/style.css?v=4" />
 </head>
 <body>
 
@@ -37,6 +44,14 @@
     </div>
   </div>
 
-  <script src="/static/swipe.js"></script>
+  <script src="/static/swipe.js?v=4"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log('Service worker registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>

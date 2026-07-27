@@ -4,7 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Movie Match — Your Matches</title>
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="manifest" href="/static/manifest.json" />
+  <meta name="theme-color" content="#14121a" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="/static/style.css?v=4" />
   <style>
     /* A few page-specific tweaks that don't belong in the shared stylesheet */
     body { align-items: flex-start; }
@@ -22,10 +27,39 @@
       font-weight: 600;
     }
     .match-item {
-      padding: 20px;
+      padding: 16px;
       margin-bottom: 14px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
     }
-    .match-item h3 { font-size: 22px; margin-bottom: 6px; }
+    .match-poster {
+      width: 80px;
+      height: 120px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--color-accent-teal), var(--color-bg));
+    }
+    .match-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .match-poster-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .match-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .match-item h3 { font-size: 20px; margin: 0 0 4px 0; }
     .match-item p { font-size: 14px; color: rgba(42, 33, 24, 0.75); margin: 0; }
     .match-item .service-badge {
       display: inline-block;
@@ -37,7 +71,7 @@
       letter-spacing: 0.05em;
       padding: 3px 9px;
       border-radius: 999px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
   </style>
 </head>
@@ -92,12 +126,19 @@
             ? `<div style="font-size: 13px; font-weight: 600; color: var(--color-accent-teal); margin-bottom: 8px;">${metaBits.join(' · ')}</div>`
             : '';
 
+          const posterContent = movie.poster_url
+            ? `<img src="${escapeHtml(movie.poster_url)}" alt="${escapeHtml(movie.title)} poster" />`
+            : `<div class="match-poster-fallback">🎬</div>`;
+
           return `
             <div class="ticket ticket-perforation match-item">
-              <div class="service-badge">${escapeHtml(movie.streaming_service)}</div>
-              <h3>${escapeHtml(movie.title)}</h3>
-              ${metaLine}
-              <p>${escapeHtml(movie.overview || 'No description available.')}</p>
+              <div class="match-poster">${posterContent}</div>
+              <div class="match-info">
+                <div class="service-badge">${escapeHtml(movie.streaming_service)}</div>
+                <h3>${escapeHtml(movie.title)}</h3>
+                ${metaLine}
+                <p>${escapeHtml(movie.overview || 'No description available.')}</p>
+              </div>
             </div>`;
         }).join('');
       } catch (err) {
@@ -108,6 +149,14 @@
     loadMatches();
     // Keep the list fresh in case your partner matches with something while you're on this page.
     setInterval(loadMatches, 5000);
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log('Service worker registration failed:', err));
+      });
+    }
   </script>
 
 </body>

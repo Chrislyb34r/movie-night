@@ -62,14 +62,25 @@ function renderCard(movie) {
     ? `<div class="card-meta">${metaBits.join(' · ')}</div>`
     : '';
 
+  // Not every movie has a poster (e.g. demo data) — fall back to a plain
+  // gradient block with a film emoji instead of a broken image icon.
+  const posterContent = movie.poster_url
+    ? `<img src="${escapeHtml(movie.poster_url)}" alt="${escapeHtml(movie.title)} poster" />`
+    : `<div class="poster-fallback">🎬</div>`;
+
   cardStack.innerHTML = `
     <div class="ticket ticket-perforation movie-card" id="active-card">
-      <div class="stamp stamp-like" id="stamp-like">LIKE</div>
-      <div class="stamp stamp-nope" id="stamp-nope">NOPE</div>
-      <div class="service-badge">${escapeHtml(movie.streaming_service)}</div>
-      <h2>${escapeHtml(movie.title)}</h2>
-      ${metaLine}
-      <p>${escapeHtml(movie.overview || 'No description available.')}</p>
+      <div class="card-poster">
+        ${posterContent}
+        <div class="service-badge">${escapeHtml(movie.streaming_service)}</div>
+        <div class="stamp stamp-like" id="stamp-like">LIKE</div>
+        <div class="stamp stamp-nope" id="stamp-nope">NOPE</div>
+      </div>
+      <div class="card-content">
+        <h2>${escapeHtml(movie.title)}</h2>
+        ${metaLine}
+        <p>${escapeHtml(movie.overview || 'No description available.')}</p>
+      </div>
     </div>`;
 
   attachDragHandlers(document.getElementById('active-card'));

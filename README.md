@@ -17,13 +17,18 @@ Built as a hands-on project to learn backend development with **FastAPI** and **
 
 ## Features
 
-- 🔗 **Real-time streaming availability** — movie data pulled live via the [Streaming Availability API](https://www.movieofthenight.com/about/api), reflecting what's actually on Netflix, Prime Video, Disney+, Max, and Crave right now
+- 🔗 **Real-time streaming availability** — movie data pulled live via the [Streaming Availability API](https://www.movieofthenight.com/about/api), reflecting what's actually on Netflix, Prime Video, Disney+, Mubi, Paramount+, and Crave right now
 - 🌍 **Multi-country support** — availability differs by country (Canada, US, UK, Australia), and results are filtered accordingly
+- 🎞️ **Movies or TV shows** — toggle between the two per session
+- 🖼️ **Poster images** — real movie posters on both the swipe cards and match history
+- ⭐ **Genre and rating filters** — narrow results by minimum rating and genre before swiping
 - 📊 **Flexible sorting** — sort by popularity over the last week, month, year, or all-time
 - 👆 **Swipe gestures** — drag-to-swipe on touch and mouse, with animated LIKE/NOPE feedback
 - 🎟️ **Shareable sessions** — one-tap code/link copying to invite a partner, no accounts or sign-up required
 - ❤️ **Persistent match history** — every match is saved and viewable at any time, not just in the moment
-- 🎨 **Custom themed UI** — a movie-ticket-inspired design (perforated card edges, ticket-stub styling) built from scratch, no UI framework
+- ⚡ **Local response caching** — repeated requests with the same filters are served from a 24-hour local cache instead of re-querying the API, with a manual "force refresh" option when you want the latest data
+- 📱 **Installable as an app (PWA)** — add it to your phone's home screen for an app-like icon and full-screen experience, no app store needed
+- 🎨 **Custom themed UI** — a movie-ticket-inspired design with progressive disclosure (essentials up front, advanced filters tucked behind a "Customize" toggle), built from scratch with no UI framework
 
 ---
 
@@ -47,12 +52,15 @@ No frontend framework, no ORM, no build step — deliberately kept lightweight a
 movie-match/
 ├── app.py              # FastAPI routes — sessions, swipes, matches
 ├── database.py          # SQLite schema + queries
-├── movie_api.py          # Streaming Availability API integration (with demo-data fallback)
+├── movie_api.py          # Streaming Availability API integration (pagination, caching, demo-data fallback)
 ├── models.py               # Pydantic request/response models
 ├── requirements.txt
 ├── static/
 │   ├── style.css            # Movie-ticket themed styling
-│   └── swipe.js               # Swipe gestures, API calls, match polling
+│   ├── swipe.js               # Swipe gestures, API calls, match polling
+│   ├── sw.js                    # Service worker — caches the static app shell for PWA support
+│   ├── manifest.json              # PWA manifest — enables "Add to Home Screen"
+│   └── icons/                       # App icons (192px, 512px, maskable variant)
 └── templates/
     ├── setup.html              # Create/join a session
     ├── swipe.html                # The swipe screen
@@ -65,12 +73,12 @@ movie-match/
 
 ### Prerequisites
 - Python 3.10+
-- A free [RapidAPI](https://rapidapi.com/) account + subscription to the [Streaming Availability API](https://rapidapi.com/movie-of-the-night-movie-of-the-night-default/api/streaming-availability) (free tier: 500 requests/month) — optional, the app runs on demo data without it
+- A free [RapidAPI](https://rapidapi.com/) account + subscription to the [Streaming Availability API](https://rapidapi.com/movie-of-the-night-movie-of-the-night-default/api/streaming-availability) (free tier: 100 requests/day) — optional, the app runs on demo data without it
 
 ### Setup
 
 ```bash
-git clone https://github.com/Chrislyb34r/movie-match.git
+git clone https://github.com/YOUR_USERNAME/movie-match.git
 cd movie-match
 
 python -m venv venv
@@ -103,16 +111,35 @@ FastAPI auto-generates an interactive API explorer at **http://127.0.0.1:8000/do
 
 - **Sessions** are the shared "room" two people swipe within, identified by a short random code — no user accounts, no login
 - **Matching logic** is a simple SQL query: a movie counts as matched once 2 *distinct* people have swiped right on it within the same session
-- **Streaming data is cached per-session** at creation time rather than fetched live per-swipe, keeping the app within the API's free-tier rate limits
+- **Streaming data is paginated and cached per unique filter combination** — the API's cursor-based pagination is followed automatically (capped at 5 pages per session) to get a fuller catalog rather than just the first page, and results are cached locally for 24 hours so repeated testing with the same filters doesn't burn through the API's daily request quota
 - The frontend **polls** for new matches every few seconds, so a match still surfaces even if it happens while you're mid-swipe on something else
+
+---
+
+## Progressive Web App (installable, no app store)
+
+Rather than publishing to the Apple App Store or Google Play (real ongoing costs and review overhead for a two-person app), Movie Match is set up as a **Progressive Web App**: visit the site on a phone, then use the browser's "Add to Home Screen" option to install it like a native app — its own icon, full-screen with no browser bar, and a service worker that caches the static app shell for fast/offline loading.
+
+Live session data (swipes, matches) is deliberately **not** cached offline — this app's whole point is sharing live data between two people, so it always talks to the server fresh.
+
+---
+
+## Development notes
+
+⚠️ When manually replacing files during development (e.g. copying in a new batch of updates), **don't delete or skip `.gitignore` or the `.idea/` folder** — both are easy to miss since they're hidden by default in Windows Explorer. Losing `.gitignore` risks accidentally committing `venv/` or the local database; losing `.idea/` wipes IDE run configurations.
+
+⚠️ Whenever `style.css` or `swipe.js` change, bump the `?v=` cache-busting number in the `<link>`/`<script>` tags across all three templates — **and** update `SHELL_ASSETS` + `CACHE_NAME` in `static/sw.js` to match. The service worker caches those exact versioned URLs, so forgetting this step means the app keeps serving an old cached version even after a hard refresh.
 
 ---
 
 ## Roadmap
 
 - [ ] Real deployment (currently runs locally / over local network)
-- [ ] Genre and rating filters
-- [ ] TV show support (currently movies only)
+- [x] Genre and rating filters
+- [x] Poster images
+- [x] Local response caching
+- [x] Installable PWA (home screen install, offline-capable app shell)
+- [ ] TV show support (in progress — UI toggle exists, full testing pending)
 - [ ] Push notifications instead of polling
 
 ---

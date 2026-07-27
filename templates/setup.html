@@ -4,7 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Movie Match</title>
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="manifest" href="/static/manifest.json" />
+  <meta name="theme-color" content="#14121a" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="/static/style.css?v=4" />
 </head>
 <body>
 
@@ -22,66 +27,10 @@
 
     <!-- CREATE A NEW SESSION -->
     <div id="tab-create" class="tab-panel active">
+
+      <!-- ---- Essentials — always visible ---- -->
       <label for="create-name">Your name</label>
       <input type="text" id="create-name" placeholder="e.g. Alice" />
-
-      <div style="height: 16px;"></div>
-
-      <label for="create-country">Country</label>
-      <select id="create-country" class="select-input">
-        <option value="ca" selected>Canada</option>
-        <option value="us">United States</option>
-        <option value="gb">United Kingdom</option>
-        <option value="au">Australia</option>
-      </select>
-      <p class="hint" style="text-align: left; margin-top: 6px;">Which movies show up depends on this — pick where you're actually streaming from.</p>
-
-      <div style="height: 16px;"></div>
-
-      <label>Movies or TV shows?</label>
-      <div class="tab-toggle" style="margin-bottom: 0;">
-        <button type="button" id="show-type-movie-btn" class="active" onclick="setShowType('movie')">Movies</button>
-        <button type="button" id="show-type-series-btn" onclick="setShowType('series')">TV Shows</button>
-      </div>
-
-      <div style="height: 16px;"></div>
-
-      <label for="create-order-by">Sort by</label>
-      <select id="create-order-by" class="select-input">
-        <option value="popularity_1year" selected>Popular this year</option>
-        <option value="popularity_1month">Popular this month</option>
-        <option value="popularity_1week">Popular this week</option>
-        <option value="popularity_alltime">Popular all-time</option>
-      </select>
-
-      <div style="height: 16px;"></div>
-
-      <label for="create-rating">Minimum rating</label>
-      <select id="create-rating" class="select-input">
-        <option value="" selected>Any rating</option>
-        <option value="5">5+</option>
-        <option value="6">6+</option>
-        <option value="7">7+</option>
-        <option value="8">8+</option>
-      </select>
-
-      <div style="height: 16px;"></div>
-
-      <label>Genres (tap to select, optional)</label>
-      <div class="service-options" id="genre-options">
-        <div class="service-chip" data-genre="action">Action</div>
-        <div class="service-chip" data-genre="comedy">Comedy</div>
-        <div class="service-chip" data-genre="drama">Drama</div>
-        <div class="service-chip" data-genre="horror">Horror</div>
-        <div class="service-chip" data-genre="thriller">Thriller</div>
-        <div class="service-chip" data-genre="romance">Romance</div>
-        <div class="service-chip" data-genre="scifi">Sci-Fi</div>
-        <div class="service-chip" data-genre="fantasy">Fantasy</div>
-        <div class="service-chip" data-genre="animation">Animation</div>
-        <div class="service-chip" data-genre="documentary">Documentary</div>
-        <div class="service-chip" data-genre="family">Family</div>
-        <div class="service-chip" data-genre="crime">Crime</div>
-      </div>
 
       <div style="height: 16px;"></div>
 
@@ -93,6 +42,82 @@
         <div class="service-chip" data-service="mubi">Mubi</div>
         <div class="service-chip" data-service="paramount">Paramount+</div>
         <div class="service-chip selected" data-service="crave">Crave</div>
+      </div>
+
+      <div style="height: 20px;"></div>
+
+      <!-- ---- Customize — collapsed by default ---- -->
+      <button type="button" class="customize-toggle" id="customize-toggle" onclick="toggleCustomize()">
+        <span>Customize</span>
+        <span class="chevron" id="customize-chevron">⌄</span>
+      </button>
+
+      <div class="customize-panel" id="customize-panel">
+       <div class="customize-panel-inner">
+        <div style="height: 16px;"></div>
+
+        <label for="create-country">Country</label>
+        <select id="create-country" class="select-input">
+          <option value="ca" selected>Canada</option>
+          <option value="us">United States</option>
+          <option value="gb">United Kingdom</option>
+          <option value="au">Australia</option>
+        </select>
+
+        <div style="height: 16px;"></div>
+
+        <label>Movies or TV shows?</label>
+        <div class="tab-toggle" style="margin-bottom: 0;">
+          <button type="button" id="show-type-movie-btn" class="active" onclick="setShowType('movie')">Movies</button>
+          <button type="button" id="show-type-series-btn" onclick="setShowType('series')">TV Shows</button>
+        </div>
+
+        <div style="height: 16px;"></div>
+
+        <label for="create-order-by">Sort by</label>
+        <select id="create-order-by" class="select-input">
+          <option value="popularity_1year" selected>Popular this year</option>
+          <option value="popularity_1month">Popular this month</option>
+          <option value="popularity_1week">Popular this week</option>
+          <option value="popularity_alltime">Popular all-time</option>
+        </select>
+
+        <div style="height: 16px;"></div>
+
+        <label for="create-rating">Minimum rating</label>
+        <select id="create-rating" class="select-input">
+          <option value="" selected>Any rating</option>
+          <option value="5">5+</option>
+          <option value="6">6+</option>
+          <option value="7">7+</option>
+          <option value="8">8+</option>
+        </select>
+
+        <div style="height: 16px;"></div>
+
+        <label>Genres (tap to select, optional)</label>
+        <div class="service-options" id="genre-options">
+          <div class="service-chip" data-genre="action">Action</div>
+          <div class="service-chip" data-genre="comedy">Comedy</div>
+          <div class="service-chip" data-genre="drama">Drama</div>
+          <div class="service-chip" data-genre="horror">Horror</div>
+          <div class="service-chip" data-genre="thriller">Thriller</div>
+          <div class="service-chip" data-genre="romance">Romance</div>
+          <div class="service-chip" data-genre="scifi">Sci-Fi</div>
+          <div class="service-chip" data-genre="fantasy">Fantasy</div>
+          <div class="service-chip" data-genre="animation">Animation</div>
+          <div class="service-chip" data-genre="documentary">Documentary</div>
+          <div class="service-chip" data-genre="family">Family</div>
+          <div class="service-chip" data-genre="crime">Crime</div>
+        </div>
+
+        <div style="height: 16px;"></div>
+
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none; font-size: 14px;">
+          <input type="checkbox" id="create-refresh" style="width: auto;" />
+          Force refresh movie data (skip 24hr cache)
+        </label>
+       </div>
       </div>
 
       <div style="height: 24px;"></div>
@@ -159,12 +184,17 @@
       document.getElementById('tab-join').classList.toggle('active', name === 'join');
       document.getElementById('tab-share').classList.toggle('active', name === 'share');
 
-      // The create/join toggle only makes sense for those two tabs —
-      // hide it entirely while on the share screen.
       document.querySelector('.tab-toggle').style.display = name === 'share' ? 'none' : 'flex';
 
       document.getElementById('tab-create-btn').classList.toggle('active', name === 'create');
       document.getElementById('tab-join-btn').classList.toggle('active', name === 'join');
+    }
+
+    function toggleCustomize() {
+      const panel = document.getElementById('customize-panel');
+      const chevron = document.getElementById('customize-chevron');
+      const isOpen = panel.classList.toggle('open');
+      chevron.classList.toggle('open', isOpen);
     }
 
     function setShowType(type) {
@@ -181,7 +211,6 @@
       document.getElementById('join-code').value = inviteCode.toLowerCase();
     }
 
-    // Toggle streaming service chips and genre chips on/off when clicked
     document.querySelectorAll('#service-options .service-chip').forEach(chip => {
       chip.addEventListener('click', () => chip.classList.toggle('selected'));
     });
@@ -208,6 +237,7 @@
       const country = document.getElementById('create-country').value;
       const orderBy = document.getElementById('create-order-by').value;
       const minRating = document.getElementById('create-rating').value;
+      const forceRefresh = document.getElementById('create-refresh').checked;
 
       if (selectedServices.length === 0) {
         errorEl.textContent = 'Select at least one streaming service.';
@@ -221,6 +251,9 @@
       if (minRating) {
         url += `&min_rating=${minRating}`;
       }
+      if (forceRefresh) {
+        url += `&refresh=true`;
+      }
 
       try {
         const response = await fetch(url, { method: 'POST' });
@@ -229,7 +262,7 @@
 
         const data = await response.json();
         createdSessionId = data.session_id;
-        window.creatorName = name; // remember for the "Continue" button below
+        window.creatorName = name;
 
         document.getElementById('share-code').textContent = data.session_id;
         showTab('share');
@@ -261,8 +294,6 @@
 
     function joinSession() {
       const name = document.getElementById('join-name').value.trim();
-      // Session codes are always lowercase — normalize here so it doesn't
-      // matter how the person typed or read the code.
       const code = document.getElementById('join-code').value.trim().toLowerCase();
       const errorEl = document.getElementById('join-error');
       errorEl.textContent = '';
@@ -272,9 +303,15 @@
         return;
       }
 
-      // We don't need to call the server here — the swipe page itself
-      // will check whether this session_id actually exists.
       window.location.href = `/swipe/${code}?user=${encodeURIComponent(name)}`;
+    }
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log('Service worker registration failed:', err));
+      });
     }
   </script>
 

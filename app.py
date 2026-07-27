@@ -32,6 +32,14 @@ def serve_homepage():
     return FileResponse("templates/setup.html")
 
 
+@app.get("/sw.js")
+def serve_service_worker():
+    # Served from the root path (not /static/) so its default scope covers
+    # the entire site — a service worker can only control paths at or below
+    # wherever it's served from.
+    return FileResponse("static/sw.js", media_type="application/javascript")
+
+
 @app.get("/swipe/{session_id}")
 def serve_swipe_page(session_id: str):
     return FileResponse("templates/swipe.html")
@@ -50,6 +58,7 @@ def create_session(
     show_type: str = "movie",
     genres: str = "",
     min_rating: float | None = None,
+    refresh: bool = False,
 ):
     """
     Creates a new shared session and pre-loads it with movies from
@@ -60,6 +69,7 @@ def create_session(
     show_type: "movie" or "series"
     genres: comma-separated genre ids (e.g. "action,comedy"), or "" for any
     min_rating: minimum rating out of 10 (e.g. 7 for "7+"), or None for any
+    refresh: if True, skips the local cache and fetches fresh data from the API
     """
     # Session codes are lowercase hex — normalizing here means it doesn't
     # matter if a code somehow gets typed/pasted in a different case later.
@@ -76,6 +86,7 @@ def create_session(
         show_type=show_type,
         genres=genre_list,
         min_rating=min_rating,
+        force_refresh=refresh,
     )
 
     for movie in movies:
